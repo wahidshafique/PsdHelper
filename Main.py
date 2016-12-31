@@ -4,8 +4,15 @@ from Tkinter import *
 import Tkinter as tk
 import Filler as filler
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.by import By
+from pymongo import MongoClient
+
+#mongodb stuff, grab the db
+client = MongoClient()
+client = MongoClient('localhost', 27017)
+db = client.test
+userprofiles = db.userprofiles
+#print userprofiles.find_one({"username": "yebfly"})
+#endmongo stuff
 
 DESTURL = "http://localhost:8080/#/mSignup/user"
 PORT = 8080
@@ -18,30 +25,34 @@ driver.get(DESTURL)#the intial url
 
 class Application(tk.Frame, object):
     def __init__(self, master=None):
+        self.username = "test"
         super(Application, self).__init__(master)
         w = Label(master, text="Choose Option")
         w.pack()
-        self.pack()
+        self.pack(padx=20,pady=20)
         self.create_widgets()
 
     def create_widgets(self):
-        self.enter = tk.Button(self)
-        self.enter["text"] = "\nRegister as Mentee\n goes up until signup"
-        self.enter["command"] = self.registerMentee
-        self.enter.pack(side="top")
+        self.regMentee =  tk.Button(self, text="\nRegister as Mentee\n",
+                  command=lambda: self.register_mentee()).pack(side="top")
 
-        self.quit = tk.Button(self, text="QUIT", fg="red",
-                              command=lambda: sequence(root.destroy(), driver.quit()))
-        self.quit.pack(side="bottom")
+        self.regMentor = tk.Button(self, text="\nRegister as Mentor\n",
+                  command=lambda: self.register_mentor()).pack(side="top")
 
-    def registerMentee(self):
+        tk.Button(self, text="QUIT", fg="red",
+                  command=lambda: sequence(root.destroy(), driver.quit())).pack(side="bottom")
+
+    def register_mentee(self):
         self.register()
-        driver.implicitly_wait(2)
-        driver.find_element_by_css_selector("div.card-container>a").click()
+        driver.implicitly_wait(2)#allows for dom to be loaded
+        driver.find_element_by_name('signup-mentee').click()
+        self.become_verified()
 
-    def registerMentor(self):
+    def register_mentor(self):
         self.register()
-        driver.find_element((By.XPATH, "//a[@href='#/mSignup/mentor-info']"))
+        driver.implicitly_wait(2)#allows for dom to be loaded
+        driver.find_element_by_name('signup-mentor').click()
+        self.become_verified()
 
     def register(self):
         displayName = driver.find_element_by_name("DisplayName")
@@ -49,7 +60,8 @@ class Application(tk.Frame, object):
         password = driver.find_element_by_name("password")
         confPassword = driver.find_element_by_name("confirmPassword")
 
-        displayName.send_keys(filler.textGenerator())
+        self.username = filler.textGenerator()
+        displayName.send_keys(self.username)
 
         EM = filler.textGenerator() + "@mail.com"
         email.send_keys(EM)
@@ -60,13 +72,17 @@ class Application(tk.Frame, object):
         driver.find_element_by_id("terms").click()
         driver.find_element_by_css_selector("button[ng-click*='SignUpUser']").click()#for angular
 
-    def scrape(self):
-        self.selectName()
-        #retaining session id from base login (I think) , go to final url (the master appoint report)
-        driver.get(DESTURL)
-        select = Select(driver.find_element_by_name('rid'))
-        select.select_by_value("sc57be02ac4a7d7")
-        return
+    def become_verified(self):
+        userprofiles.update_one(
+            {"username": self.username},
+                {
+                    "$set": {
+                        "status": "verified"
+                    }
+                }
+        )
+        driver.refresh()
+        driver.find_element_by_css_selector("a[ng-click*='AppendUserData']").click()
 
 
 def sequence(*functions):
@@ -81,9 +97,10 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 result = s.connect_ex(('127.0.0.1', PORT))
 
 root = tk.Tk()
+root.minsize(width=300, height=200)
 app = Application(master=root)
 if result == 0:
     print('socket is open')
     app.mainloop()
-sequence(driver.quit(), root.destroy())
+else: sequence(driver.quit(), root.destroy())
 print("no open port")
