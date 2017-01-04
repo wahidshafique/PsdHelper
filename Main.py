@@ -2,6 +2,7 @@ import socket
 import os
 from Tkinter import *
 import Tkinter as tk
+import tkMessageBox
 import Filler as filler
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -60,13 +61,6 @@ class Application(tk.Frame, object):
         except NoSuchElementException:
             print("element does not exist!")
 
-    def login_mentee(self):
-        try:
-            self.login()
-        except NoSuchElementException:
-            print("element does not exist!")
-
-
     def register_mentor(self):
         try:
             self.register()
@@ -75,7 +69,6 @@ class Application(tk.Frame, object):
             self.become_verified()
         except NoSuchElementException:
             print("element does not exist!")
-
 
     def register(self):
         displayName = driver.find_element_by_name("DisplayName")
@@ -161,6 +154,8 @@ if result == 0:
     print('socket is open')
     app.mainloop()
 else:
+    tkMessageBox.showerror(
+        "Port Listener",
+        "127.0.0.1:%i is not open \n did you start the server?" % PORT
+    )
     filler.sequence(driver.quit(), root.destroy())
-
-print("no open port")
