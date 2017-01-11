@@ -8,7 +8,9 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotVisibleException
+from selenium.webdriver.chrome.options import Options
 from pymongo import MongoClient
+import httplib
 
 #mongodb stuff, grab the db
 client = MongoClient()
@@ -17,12 +19,15 @@ db = client.test
 userProfiles = db.userprofiles
 #endmongo stuff
 
-DESTURL = "http://localhost:8080/#/mSignup/user"
 PORT = 8080
+DESTURL = "http://localhost:" + str(PORT) + "/#/mSignup/user"
 
 chromedriver = "chromedriver_win32/chromedriver.exe"
 os.environ["webdriver.chrome.driver"] = chromedriver
-driver = webdriver.Chrome(chromedriver)
+
+chromeOptions = webdriver.ChromeOptions()
+
+driver = webdriver.Chrome(chromedriver, chrome_options=chromeOptions)
 driver.get(DESTURL)#the intial url
 
 
@@ -43,10 +48,20 @@ class Application(tk.Frame, object):
                                    command=lambda: self.login("mentee@mail.com","password")).pack(side="top")
 
         self.regMentor = tk.Button(self, text="\nRegister as Mentor\n",
-                  command=lambda: self.register_mentor()).pack(side="top")
+                  command=lambda: self.register_mentor()).pack(side="top", pady=(40, 0))
 
         self.logMentor = tk.Button(self, text="\nLog in as Mentor\n",
                                    command=lambda: self.login("mentor@mail.com", "password")).pack(side="top")
+
+        self.removeAllProfiles = tk.Button(self, text="\n Remove all profiles",
+                                           command=lambda:self.remove_prof())\
+
+        self.removeAllProfiles.pack(side="top", pady=(40, 10))
+
+        self.setAllProfiles = tk.Button(self, text="\n Set all profiles",
+                                           command=lambda: self.set_prof())\
+
+        self.setAllProfiles.pack(side="top", pady=(10, 10))
 
         tk.Button(self, text="RESET", fg="blue", command=lambda: reset()).pack(side="bottom")
         tk.Button(self, text="QUIT", fg="red",
@@ -115,6 +130,21 @@ class Application(tk.Frame, object):
         driver.implicitly_wait(2)  # allows for dom to be loaded
         fill_form()
 
+    def remove_prof(self):
+        conn = httplib.HTTPConnection("localhost", PORT, timeout=10)
+        conn.request("HEAD", "/set/removeProfiles")
+        res = conn.getresponse()
+        self.removeAllProfiles.config(state=DISABLED)
+        self.setAllProfiles.config(state=NORMAL)
+        print res.status, res.reason
+
+    def set_prof(self):
+        conn = httplib.HTTPConnection("localhost", PORT, timeout=10)
+        conn.request("HEAD", "/set/alltest")
+        res = conn.getresponse()
+        self.setAllProfiles.config(state=DISABLED)
+        self.removeAllProfiles.config(state=NORMAL)
+        print res.status, res.reason
 
 def fill_form():
     inputs = driver.find_elements_by_xpath("//form[@name='mentorshipForm']//input")

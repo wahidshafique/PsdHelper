@@ -1,0 +1,31 @@
+{
+   "background": {
+      "persistent": false,
+      "scripts": [ "background.js" ]
+   },
+   "browser_action": {
+      "default_icon": {
+         "19": "btn19.png",
+         "38": "btn38.png"
+      },
+      "default_title": "ng-inspector"
+   },
+   "content_scripts": [ {
+      "css": [ "stylesheet.css" ],
+      "js": [ "inject.js" ],
+      "matches": [ "*://*/*" ]
+   } ],
+   "description": "Inspector pane for AngularJS apps",
+   "icons": {
+      "128": "icon128.png",
+      "16": "icon16.png",
+      "48": "icon48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsrTevkk7jgO6bbVt/8BlS+hvzGMzBDCRvTFsHcKVCPm/6REq4fCRhsI5UO+TvxqBDGWPfpWA3yiTZdtcV70ieHc/2I+JZCSWhuiSOmULJ5Ov4JP+1zegdP/H6ZzHF6z+8JRZv1Rg2u8Edrj6xFXJkwMWHYr0Pt8CslqWksXfv7jnA2Dfvoz7lut0lQqIqbHoP7hxVq8P5u6hWFGTk7KiGB6fuvKVUblJMXdhBNU7RqhWHZDYw0fS3Jl4Cd8G7fZ9zRHVGM5WZr21bSTF+fhIel8v/eyT+twysEZW0Ef3oAK3oLuQCruROh0ZH8Jzy0Dp+xQOfvo/ymDjxHLdM/8NewIDAQAB",
+   "manifest_version": 2,
+   "name": "ng-inspector for AngularJS",
+   "permissions": [ "tabs", "\u003Call_urls>" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "0.5.10",
+   "web_accessible_resources": [ "ng-inspector.js", "processing.png", "icons/*" ]
+}
